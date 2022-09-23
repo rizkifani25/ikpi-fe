@@ -9,12 +9,13 @@ import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import { mainListItems } from './listItems';
-import { Outlet } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
+import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { AccountCircle, DashboardRounded, PowerSettingsNewRounded, ViewListRounded } from '@mui/icons-material';
+import { readLoginResponse } from '../common/localstorage';
+import { grey } from '@mui/material/colors';
 
 const drawerWidth = 240;
 
@@ -63,10 +64,17 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 const mdTheme = createTheme();
 
 const MainLayout = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = React.useState(true);
+  const [activeMenu, setActiveMenu] = React.useState(1);
 
   const toggleDrawer = () => {
     setOpen(!open);
+  };
+
+  const handleNavClick = (href, menu) => {
+    if (menu !== 3) setActiveMenu(menu);
+    navigate(href, { replace: true });
   };
 
   return (
@@ -76,7 +84,7 @@ const MainLayout = () => {
         <AppBar position="absolute" open={open}>
           <Toolbar
             sx={{
-              pr: '24px', // keep right padding when drawer closed
+              pr: '24px',
             }}
           >
             <IconButton
@@ -92,12 +100,19 @@ const MainLayout = () => {
               <MenuIcon />
             </IconButton>
             <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
-              Dashboard
+              PT. IK Precision Indonesia
             </Typography>
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-              </Badge>
+            <Typography component="h1" variant="h6" color="inherit" noWrap>
+              {readLoginResponse()}
+            </Typography>
+            <IconButton
+              size="large"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              color="inherit"
+            >
+              <AccountCircle />
             </IconButton>
           </Toolbar>
         </AppBar>
@@ -115,7 +130,34 @@ const MainLayout = () => {
             </IconButton>
           </Toolbar>
           <Divider />
-          <List component="nav">{mainListItems}</List>
+          <List component="nav">
+            <React.Fragment>
+              <ListItemButton
+                onClick={() => handleNavClick('/lkpi/dashboard/main', 1)}
+                sx={{ borderRight: activeMenu === 1 ? 'solid 3px blue !important' : '' }}
+              >
+                <ListItemIcon>
+                  <DashboardRounded color={activeMenu === 1 ? 'primary' : ''} />
+                </ListItemIcon>
+                <ListItemText primary="Dashboard" />
+              </ListItemButton>
+              <ListItemButton
+                onClick={() => handleNavClick('/lkpi/dashboard/session/', 2)}
+                sx={{ borderRight: activeMenu === 2 ? 'solid 3px blue !important' : '' }}
+              >
+                <ListItemIcon>
+                  <ViewListRounded color={activeMenu === 2 ? 'primary' : ''} />
+                </ListItemIcon>
+                <ListItemText primary="Sesi Test" />
+              </ListItemButton>
+              <ListItemButton onClick={() => handleNavClick('/lkpi/login', 3)}>
+                <ListItemIcon>
+                  <PowerSettingsNewRounded />
+                </ListItemIcon>
+                <ListItemText primary="Log Out" />
+              </ListItemButton>
+            </React.Fragment>
+          </List>
         </Drawer>
         <Box
           display="flex"
@@ -124,6 +166,7 @@ const MainLayout = () => {
             backgroundColor: (theme) => theme.palette.grey[100],
             height: '100vh',
             width: '100%',
+            overflowY: 'scroll',
           }}
         >
           {<Outlet />}

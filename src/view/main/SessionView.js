@@ -1,8 +1,7 @@
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Grid from '@mui/material/Grid';
-import SessionCard from './SessionCard';
+import React, { useEffect, useState } from 'react';
+import { AddRounded } from '@mui/icons-material';
 import {
+  Box,
   Button,
   Card,
   CardActionArea,
@@ -11,28 +10,46 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Grid,
   TextField,
+  Toolbar,
+  Typography,
 } from '@mui/material';
-import { AddRounded } from '@mui/icons-material';
-import { Controller, useForm } from 'react-hook-form';
-import { useState } from 'react';
 import { grey } from '@mui/material/colors';
-import { LocalizationProvider, DesktopTimePicker, DatePicker } from '@mui/x-date-pickers';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { Controller, useForm } from 'react-hook-form';
 import { useSessions } from '../common/hooks/useSessions';
+import { useMutation } from 'react-query';
+import SessionCard from './SessionCard';
+import useSessionsList from '../common/hooks/useSessionsList';
+import { URL_API_SESSION_CREATE } from '../common/constant';
+import ReactQuill from 'react-quill';
+import EditorToolbar, { modules, formats } from './components/EditorToolbar';
+import { useNavigate } from 'react-router';
+import { readLoginResponse } from '../common/localstorage';
 
-function DashboardContent() {
+const { default: axios } = require('axios');
+
+const createNewSessions = async (data) => await axios.post(URL_API_SESSION_CREATE, data);
+
+const SessionView = () => {
+  const { isFetching } = useSessionsList();
+
+  const { isLoading, mutate } = useMutation(createNewSessions);
+
   const sessions = useSessions((state) => state.sessions);
-  const addSession = useSessions((state) => state.addSession);
 
-  const [isLoading, setIsLoading] = useState();
   const [dialog, setDialog] = useState({ isOpen: false });
 
+  const [tmpQuestion, setTmpQuestion] = useState('');
   const { handleSubmit, control, reset } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
-    defaultValues: { session_name: '', date: '', start_time: '', end_time: '' },
+    defaultValues: { session_name: '', start_time: '', end_time: '' },
   });
+
+  const navigate = useNavigate();
 
   const handleOpenDialog = () => {
     reset();
@@ -44,31 +61,52 @@ function DashboardContent() {
   };
 
   const onSubmit = (data) => {
-    addSession(data);
+    mutate({
+      session_name: data.session_name,
+      start_time: new Date(data.start_time).getTime(),
+      end_time: new Date(data.end_time).getTime(),
+      session_rules: tmpQuestion,
+    });
     handleCloseDialog();
   };
+
+  useEffect(() => {
+    return () => {
+      const loginRes = readLoginResponse();
+      if (loginRes === null) navigate('/lkpi/login');
+    };
+  }, []);
 
   return (
     <>
       <Toolbar />
-      <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
-        <Box display="flex" flexDirection="row">
-          <Button variant="contained" startIcon={<AddRounded />} onClick={handleOpenDialog}>
-            Tambah Sesi Baru
-          </Button>
+      {isFetching && (
+        <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
+          <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
+            <CircularProgress color="primary" />
+          </Grid>
         </Box>
-        <Grid container sx={{ mt: 3, width: '100%' }} gap={2}>
-          {sessions.map((session, index) => (
-            <Grid key={index} item xs={12} md={12} lg={2} sx={{ width: '100%' }}>
-              <Card elevation={0} sx={{ maxWidth: 345, borderRadius: 3, border: 'dashed 1px #263238' }}>
-                <CardActionArea>
-                  <SessionCard sessionData={session} />
-                </CardActionArea>
-              </Card>
-            </Grid>
-          ))}
+      )}
+      {!isFetching && (
+        <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
+          <Box display="flex" flexDirection="row">
+            <Button variant="contained" startIcon={<AddRounded />} onClick={handleOpenDialog}>
+              Tambah Sesi Baru
+            </Button>
+          </Box>
+          <Grid container sx={{ mt: 3, width: '100%' }} gap={2}>
+            {sessions.map((session, index) => (
+              <Grid key={index} item xs={12} md={12} lg={3} sx={{ width: '100%' }}>
+                <Card elevation={0} sx={{ maxWidth: 345, borderRadius: 3, border: 'dashed 1px #263238' }}>
+                  <CardActionArea onClick={() => navigate(`/lkpi/dashboard/session/${session.id}`, { replace: true })}>
+                    <SessionCard sessionData={session} />
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         </Grid>
-      </Grid>
+      )}
       <Dialog open={dialog.isOpen} onClose={handleCloseDialog}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogTitle>Tambahkan Sesi Baru</DialogTitle>
@@ -82,26 +120,25 @@ function DashboardContent() {
                 />
               </Grid>
               <Grid item xs={12}>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                  <Controller
-                    render={({ field: { onChange, value } }) => (
-                      <DatePicker
-                        label="Tanggal "
-                        onChange={(openTime) => onChange(openTime)}
-                        value={value}
-                        renderInput={(params) => <TextField fullWidth {...params} />}
-                      />
-                    )}
-                    name="date"
-                    control={control}
-                  />
-                </LocalizationProvider>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Peraturan :
+                </Typography>
+                <EditorToolbar />
+                <ReactQuill
+                  theme="snow"
+                  value={tmpQuestion}
+                  onChange={setTmpQuestion}
+                  placeholder={'Write something awesome...'}
+                  modules={modules}
+                  formats={formats}
+                  style={{ width: '100%', height: 300 }}
+                />
               </Grid>
               <Grid item xs={6}>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <Controller
                     render={({ field: { onChange, value } }) => (
-                      <DesktopTimePicker
+                      <DateTimePicker
                         label="Waktu Mulai"
                         onChange={(openTime) => onChange(openTime)}
                         ampm={false}
@@ -118,9 +155,9 @@ function DashboardContent() {
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                   <Controller
                     render={({ field: { onChange, value } }) => (
-                      <DesktopTimePicker
+                      <DateTimePicker
                         label="Waktu Selesai"
-                        onChange={(openTime) => onChange(openTime)}
+                        onChange={(closeTime) => onChange(closeTime)}
                         ampm={false}
                         value={value}
                         renderInput={(params) => <TextField fullWidth {...params} />}
@@ -156,8 +193,6 @@ function DashboardContent() {
       </Dialog>
     </>
   );
-}
+};
 
-export default function Dashboard() {
-  return <DashboardContent />;
-}
+export default SessionView;

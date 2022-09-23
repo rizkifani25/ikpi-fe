@@ -1,4 +1,5 @@
 const dayjs = require('dayjs');
+require('dayjs/locale/id');
 
 dayjs.locale('id');
 

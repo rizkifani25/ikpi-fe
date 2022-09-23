@@ -8,7 +8,7 @@ const SessionCard = ({ sessionData }) => {
     <React.Fragment>
       <CardHeader
         title={sessionData.session_name}
-        subheader={`${convertDate(sessionData.date, 'dddd, DD MMMM YYYY')}`}
+        subheader={`${convertDate(sessionData.start_time, 'dddd, DD MMMM YYYY')}`}
       />
       <CardContent>
         <Typography variant="body1" sx={{ flex: 1 }}>
