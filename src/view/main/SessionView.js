@@ -75,6 +75,7 @@ const SessionView = () => {
       const loginRes = readLoginResponse();
       if (loginRes === null) navigate('/lkpi/login');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -89,15 +90,17 @@ const SessionView = () => {
       )}
       {!isFetching && (
         <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
-          <Box display="flex" flexDirection="row">
-            <Button variant="contained" startIcon={<AddRounded />} onClick={handleOpenDialog}>
-              Tambah Sesi Baru
-            </Button>
-          </Box>
+          {readLoginResponse().role_name !== 'user' && (
+            <Box display="flex" flexDirection="row">
+              <Button variant="contained" startIcon={<AddRounded />} onClick={handleOpenDialog}>
+                Tambah Sesi Baru
+              </Button>
+            </Box>
+          )}
           <Grid container sx={{ mt: 3, width: '100%' }} gap={2}>
             {sessions.map((session, index) => (
               <Grid key={index} item xs={12} md={12} lg={3} sx={{ width: '100%' }}>
-                <Card elevation={0} sx={{ maxWidth: 345, borderRadius: 3, border: 'dashed 1px #263238' }}>
+                <Card sx={{ maxWidth: 345 }}>
                   <CardActionArea onClick={() => navigate(`/lkpi/dashboard/session/${session.id}`, { replace: true })}>
                     <SessionCard sessionData={session} />
                   </CardActionArea>

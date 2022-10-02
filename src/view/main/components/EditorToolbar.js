@@ -38,19 +38,21 @@ Font.whitelist = ['arial', 'comic-sans', 'courier-new', 'georgia', 'helvetica', 
 Quill.register(Font, true);
 
 // Modules object for setting up the Quill editor
-export const modules = {
-  toolbar: {
-    container: '#toolbar',
-    handlers: {
-      undo: undoChange,
-      redo: redoChange,
+export const modules = (fieldId) => {
+  return {
+    toolbar: {
+      container: `#${fieldId}`,
+      handlers: {
+        undo: undoChange,
+        redo: redoChange,
+      },
     },
-  },
-  history: {
-    delay: 500,
-    maxStack: 100,
-    userOnly: true,
-  },
+    history: {
+      delay: 500,
+      maxStack: 100,
+      userOnly: true,
+    },
+  };
 };
 
 // Formats objects for setting up the Quill editor
@@ -76,8 +78,8 @@ export const formats = [
 ];
 
 // Quill Toolbar component
-export const QuillToolbar = () => (
-  <div id="toolbar">
+export const QuillToolbar = ({ fieldId }) => (
+  <div id={fieldId}>
     <span className="ql-formats">
       <select className="ql-font" defaultValue="arial">
         <option value="arial">Arial</option>

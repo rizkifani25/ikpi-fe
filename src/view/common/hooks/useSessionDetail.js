@@ -7,6 +7,7 @@ const { default: axios } = require('axios');
 
 export default function useSessionDetail(sessionId) {
   const { setAlert } = useSnackbar();
+  const [doFetch, setDoFetch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const detailSession = useSessions((state) => state.detailSession);
   const setDetailSession = useSessions((state) => state.setDetailSession);
@@ -14,6 +15,7 @@ export default function useSessionDetail(sessionId) {
   useEffect(() => {
     let subscribed = true;
     const getSessionDetail = async (id) => {
+      setDoFetch(true);
       const response = await axios.post(URL_API_SESSION_DETAIL, { id_session: id });
       if (response.data.response_code !== 200) {
         setAlert('Terjadi kesalahan tidak terduga. Gagal mendapatkan data.', 'error');
@@ -27,10 +29,11 @@ export default function useSessionDetail(sessionId) {
       if (subscribed) {
         setIsLoading(true);
         getSessionDetail(sessionId);
+        setDoFetch(false);
         subscribed = true;
       }
     };
-  }, [sessionId]);
+  }, [sessionId, doFetch]);
 
-  return { isLoading, detailSession };
+  return { isLoading, detailSession, setDoFetch };
 }

@@ -15,7 +15,6 @@ import { Outlet, useNavigate } from 'react-router';
 import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import { AccountCircle, DashboardRounded, PowerSettingsNewRounded, ViewListRounded } from '@mui/icons-material';
 import { readLoginResponse } from '../common/localstorage';
-import { grey } from '@mui/material/colors';
 
 const drawerWidth = 240;
 
@@ -103,7 +102,7 @@ const MainLayout = () => {
               PT. IK Precision Indonesia
             </Typography>
             <Typography component="h1" variant="h6" color="inherit" noWrap>
-              {readLoginResponse()}
+              {readLoginResponse().user_full_name}
             </Typography>
             <IconButton
               size="large"

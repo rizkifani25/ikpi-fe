@@ -21,9 +21,14 @@ import { useNavigate } from 'react-router';
 import { saveLoginResponse } from '../common/localstorage';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import { Carousel } from 'react-responsive-carousel';
+import { URL_API_USER_LOGIN } from '../common/constant';
+import { handlePostRequest } from '../common/api';
+import useSnackbar from '../common/hooks/useSnackbar';
 
 const LoginView = () => {
   const navigate = useNavigate();
+  const { setAlert } = useSnackbar();
+
   const [isLoading, setIsLoading] = useState(false);
   const [dialogLogin, setDialogLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,9 +55,20 @@ const LoginView = () => {
   };
 
   const onSubmit = (data) => {
-    console.log(data);
-    saveLoginResponse(data.email);
-    navigate('/lkpi/dashboard', { replace: true });
+    setIsLoading(true);
+    let fetchData = {
+      url: URL_API_USER_LOGIN,
+      data: data,
+    };
+    handlePostRequest(fetchData)
+      .then((response) => {
+        saveLoginResponse(response.data.data);
+        navigate('/lkpi/dashboard', { replace: true });
+      })
+      .catch((err) => {
+        setIsLoading(false);
+        setAlert(err.response.data.response_message || 'Terjadi kesalahan tidak terduga. Gagal login.', 'error');
+      });
   };
 
   return (
@@ -64,7 +80,8 @@ const LoginView = () => {
             pr: '24px',
           }}
         >
-          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
+          <img style={{ height: '50px' }} alt="Logo IKPI" src={`${process.env.PUBLIC_URL}/assets/logo.png`} />
+          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1, ml: 2 }}>
             PT. IK Precision Indonesia
           </Typography>
           <IconButton
@@ -79,12 +96,27 @@ const LoginView = () => {
           </IconButton>
         </Toolbar>
       </AppBar>
-      <Carousel showArrows={true} showThumbs={false}>
+      <Carousel width={'100%'} showArrows={true} showThumbs={false} autoPlay={true} infiniteLoop={true}>
         <div>
-          <img alt="gambar 1.jpg" src={`${process.env.PUBLIC_URL}/assets/bg1.jpg`} />
+          <img
+            style={{ height: '100vh', objectFit: 'cover' }}
+            alt="gambar 1"
+            src={`${process.env.PUBLIC_URL}/assets/bg1.jpeg`}
+          />
         </div>
         <div>
-          <img alt="gambar 2.jpg" src={`${process.env.PUBLIC_URL}/assets/bg2.jpg`} />
+          <img
+            style={{ height: '100vh', objectFit: 'cover' }}
+            alt="gambar 2"
+            src={`${process.env.PUBLIC_URL}/assets/bg2.jpg`}
+          />
+        </div>
+        <div>
+          <img
+            style={{ height: '100vh', objectFit: 'cover' }}
+            alt="gambar 3"
+            src={`${process.env.PUBLIC_URL}/assets/bg3.jpg`}
+          />
         </div>
       </Carousel>
       <Dialog
