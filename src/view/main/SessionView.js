@@ -28,6 +28,7 @@ import ReactQuill from 'react-quill';
 import EditorToolbar, { modules, formats } from './components/EditorToolbar';
 import { useNavigate } from 'react-router';
 import { readLoginResponse } from '../common/localstorage';
+import EditorField from './components/EditorField';
 
 const { default: axios } = require('axios');
 
@@ -43,10 +44,10 @@ const SessionView = () => {
   const [dialog, setDialog] = useState({ isOpen: false });
 
   const [tmpQuestion, setTmpQuestion] = useState('');
-  const { handleSubmit, control, reset } = useForm({
+  const { handleSubmit, control, reset, watch, setValue } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
-    defaultValues: { session_name: '', start_time: '', end_time: '' },
+    defaultValues: { session_name: '', session_rules: '', start_time: '', end_time: '' },
   });
 
   const navigate = useNavigate();
@@ -69,6 +70,8 @@ const SessionView = () => {
     });
     handleCloseDialog();
   };
+
+  const editorValue = (field) => watch(field);
 
   useEffect(() => {
     return () => {
@@ -126,15 +129,10 @@ const SessionView = () => {
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   Peraturan :
                 </Typography>
-                <EditorToolbar />
-                <ReactQuill
-                  theme="snow"
-                  value={tmpQuestion}
-                  onChange={setTmpQuestion}
-                  placeholder={'Write something awesome...'}
-                  modules={modules}
-                  formats={formats}
-                  style={{ width: '100%', height: 300 }}
+                <EditorField
+                  fieldId={'session_rules'}
+                  value={editorValue('session_rules')}
+                  onChange={(value) => setValue('session_rules', value)}
                 />
               </Grid>
               <Grid item xs={6}>
