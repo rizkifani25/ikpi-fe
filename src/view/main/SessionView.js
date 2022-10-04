@@ -66,7 +66,7 @@ const SessionView = () => {
       session_name: data.session_name,
       start_time: new Date(data.start_time).getTime(),
       end_time: new Date(data.end_time).getTime(),
-      session_rules: tmpQuestion,
+      session_rules: data.session_rules,
     });
     handleCloseDialog();
   };
