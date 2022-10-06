@@ -12,9 +12,15 @@ const API_SESSION = `${API_V1}/session`;
 exports.URL_API_SESSION_GET_LIST = `${API_SESSION}/get-list`;
 exports.URL_API_SESSION_CREATE = `${API_SESSION}/create`;
 exports.URL_API_SESSION_DETAIL = `${API_SESSION}/get-detail`;
+exports.URL_API_SESSION_DETAIL_USER = `${API_SESSION}/get-user-detail-session`;
 
 const API_QUESTION = `${API_V1}/question`;
 exports.URL_API_QUESTION_CREATE = `${API_QUESTION}/create`;
 exports.URL_API_QUESTION_UPDATE = `${API_QUESTION}/update-question-answer`;
+exports.URL_API_QUESTION_GET_USER = `${API_QUESTION}/get-by-id`;
+
+const API_ANSWER = `${API_V1}/answer`;
+exports.URL_API_ANSWER_STORE = `${API_ANSWER}/store-user-answer`;
 
 exports.LOCALSTORAGE_LOGIN_RESPONSE = 'loginRes';
+exports.LOCALSTORAGE_DETAIL_SESSION = 'detailSession';

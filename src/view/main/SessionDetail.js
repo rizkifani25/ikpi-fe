@@ -23,33 +23,81 @@ import {
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { Box } from '@mui/system';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { useMutation, useQuery } from 'react-query';
 import ReactQuill from 'react-quill';
 import { useNavigate, useParams } from 'react-router';
-import { handlePostRequest, handlePutRequest } from '../common/api';
-import { URL_API_QUESTION_CREATE, URL_API_QUESTION_UPDATE } from '../common/constant';
-import useSessionDetail from '../common/hooks/useSessionDetail';
+import {
+  URL_API_QUESTION_CREATE,
+  URL_API_QUESTION_UPDATE,
+  URL_API_SESSION_DETAIL,
+  URL_API_SESSION_DETAIL_USER,
+} from '../common/constant';
+import { useSessions } from '../common/hooks/useSessions';
 import useSnackbar from '../common/hooks/useSnackbar';
 import { readLoginResponse } from '../common/localstorage';
 import { convertDate, getAlphabet } from '../common/utils';
 import EditorField from './components/EditorField';
 import QuestionCard from './QuestionCard';
 
+const { default: axios } = require('axios');
+
+const getDetailSession = async (data) => await axios.post(data.url, data.data);
+const createQuestion = async (data) => await axios.post(data.url, data.data);
+const updateQuestion = async (data) => await axios.put(data.url, data.data);
+
 const SessionDetail = () => {
-  const { setAlert } = useSnackbar();
   const navigate = useNavigate();
+
   const { id } = useParams();
-  const { isLoading, detailSession, setDoFetch } = useSessionDetail(id);
-  const [mode, setMode] = useState('');
-  const [dialog, setDialog] = useState({ isOpen: false });
-  const { register, setValue, watch, handleSubmit, control, getValues } = useForm({
+  const { setAlert } = useSnackbar();
+
+  const detailSession = useSessions((state) => state.detailSession);
+  const setDetailSession = useSessions((state) => state.setDetailSession);
+
+  const loginRes = readLoginResponse();
+  const fetchData = {
+    url: loginRes.role_name === 'user' ? URL_API_SESSION_DETAIL_USER : URL_API_SESSION_DETAIL,
+    data: {
+      id_session: id,
+      id_user: loginRes.id,
+    },
+  };
+
+  const { isFetching, refetch } = useQuery('sessionDetail', () => getDetailSession(fetchData), {
+    onSuccess: (response) => {
+      setDetailSession(response.data.data);
+    },
+    onError: () => {
+      setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+    },
+  });
+
+  const actionQuestion = (request) => {
+    if (request.mode === 'create') return createQuestion(request.data);
+    if (request.mode === 'edit') return updateQuestion(request.data);
+  };
+  const { mutate } = useMutation(actionQuestion, {
+    onSuccess: () => {
+      handleCloseDialog();
+      refetch();
+    },
+    onError: () => {
+      handleCloseDialog();
+      setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+    },
+  });
+
+  const { setValue, watch, handleSubmit, control, getValues } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
     defaultValues: { id_session: id, id: '', question: '', question_type: '', question_duration: 0, answer_option: [] },
   });
   const { append, remove } = useFieldArray({ name: 'answer_option', control });
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  const [mode, setMode] = useState('');
+  const [dialog, setDialog] = useState({ isOpen: false });
 
   const handleOpenDialog = () => {
     setDialog((prevValue) => ({ ...prevValue, isOpen: true }));
@@ -60,49 +108,24 @@ const SessionDetail = () => {
   };
 
   const onSubmit = handleSubmit((data) => {
-    setIsProcessing(true);
-    let request = {
-      url: URL_API_QUESTION_CREATE,
-      data: data,
-    };
     if (mode === 'edit') {
-      request.url = URL_API_QUESTION_UPDATE;
-      request.data = {
-        id: data.id,
-        question: data.question,
-        question_type: data.question_type,
-        question_duration: data.question_duration,
-        answer: data.answer_option,
+      let request = {
+        url: URL_API_QUESTION_UPDATE,
+        data: {
+          id: data.id,
+          question: data.question,
+          question_type: data.question_type,
+          question_duration: data.question_duration,
+          answer: data.answer_option,
+        },
       };
-      handlePutRequest(request)
-        .then((response) => {
-          setIsProcessing(false);
-          if (response.data.response_code !== 200) {
-            setAlert('Terjadi kesalahan tidak terduga. Gagal edit pertanyaan.', 'error');
-          } else {
-            setDoFetch(true);
-            handleCloseDialog();
-            setAlert('Sukses edit pertanyaan.', 'success');
-          }
-        })
-        .catch(() => {
-          setAlert('Terjadi kesalahan tidak terduga. Gagal edit pertanyaan.', 'error');
-        });
+      mutate({ mode: 'edit', data: request });
     } else {
-      handlePostRequest(request)
-        .then((response) => {
-          setIsProcessing(false);
-          if (response.data.response_code !== 200) {
-            setAlert('Terjadi kesalahan tidak terduga. Gagal membuat pertanyaan.', 'error');
-          } else {
-            setDoFetch(true);
-            handleCloseDialog();
-            setAlert('Sukses membuat pertanyaan.', 'success');
-          }
-        })
-        .catch(() => {
-          setAlert('Terjadi kesalahan tidak terduga. Gagal membuat pertanyaan.', 'error');
-        });
+      let request = {
+        url: URL_API_QUESTION_CREATE,
+        data: data,
+      };
+      mutate({ mode: 'create', data: request });
     }
   });
 
@@ -123,25 +146,25 @@ const SessionDetail = () => {
 
   const editorValue = (field) => watch(field);
 
-  const handleAddAnswer = () => append({ answer: '', is_correct: false });
+  const handleAddAnswer = () => append({ id: '', answer: '', is_correct: false });
 
   const handleDeleteAnswer = (index) => () => remove(index);
 
-  useEffect(() => {
-    register('question');
-  }, [register]);
+  const handleStartTest = () => {
+    navigate('/lkpi/dashboard/ontest', { replace: true });
+  };
 
   return (
     <>
       <Toolbar />
-      {isLoading && (
+      {isFetching && (
         <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
           <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
             <CircularProgress color="primary" />
           </Grid>
         </Box>
       )}
-      {!isLoading && (
+      {!isFetching && (
         <Grid container sx={{ mt: 2, mb: 4, p: 4 }} gap={4}>
           <Grid item xs={3}>
             <Button variant="contained" startIcon={<ArrowBackRounded />} onClick={() => handleButtonBack()}>
@@ -185,7 +208,7 @@ const SessionDetail = () => {
                 )}
                 {readLoginResponse().role_name === 'user' && (
                   <Grid container flexDirection="row" alignItems="center" justifyContent="center">
-                    <Button variant="contained" color="primary" size="large">
+                    <Button variant="contained" color="primary" size="large" onClick={() => handleStartTest()}>
                       Mulai Test
                     </Button>
                   </Grid>
@@ -243,7 +266,9 @@ const SessionDetail = () => {
                     <Grid item xs={12} key={index} sx={{ mb: 2 }}>
                       <Grid container direction="row" justifyItems="center" spacing={1}>
                         <Grid item xs={1}>
-                          <Typography variant="h5">{getAlphabet(index)}.</Typography>
+                          <Typography variant="h5">
+                            {getAlphabet(index)}.{opt.id}
+                          </Typography>
                         </Grid>
                         <Grid item xs={1}>
                           <Controller
@@ -294,8 +319,8 @@ const SessionDetail = () => {
           <Button onClick={handleCloseDialog} color="primary" variant="outlined" size="large">
             Cancel
           </Button>
-          <Button onClick={onSubmit} color="primary" variant="contained" disabled={isProcessing} size="large">
-            {isProcessing && (
+          <Button onClick={onSubmit} color="primary" variant="contained" disabled={isFetching} size="large">
+            {isFetching && (
               <CircularProgress
                 size="small"
                 sx={{

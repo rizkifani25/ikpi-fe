@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { URL_API_SESSION_DETAIL } from '../constant';
+import { handlePostRequest } from '../api';
+import { URL_API_SESSION_DETAIL, URL_API_SESSION_DETAIL_USER } from '../constant';
+import { readLoginResponse, saveDetailSession } from '../localstorage';
 import { useSessions } from './useSessions';
 import useSnackbar from './useSnackbar';
-
-const { default: axios } = require('axios');
 
 export default function useSessionDetail(sessionId) {
   const { setAlert } = useSnackbar();
@@ -16,13 +16,28 @@ export default function useSessionDetail(sessionId) {
     let subscribed = true;
     const getSessionDetail = async (id) => {
       setDoFetch(true);
-      const response = await axios.post(URL_API_SESSION_DETAIL, { id_session: id });
-      if (response.data.response_code !== 200) {
-        setAlert('Terjadi kesalahan tidak terduga. Gagal mendapatkan data.', 'error');
-      } else {
-        setDetailSession(response.data.data);
-      }
-      setIsLoading(false);
+      const loginRes = readLoginResponse();
+      const fetchData = {
+        url: loginRes.role_name === 'user' ? URL_API_SESSION_DETAIL_USER : URL_API_SESSION_DETAIL,
+        data: {
+          id_session: sessionId,
+          id_user: loginRes.id,
+        },
+      };
+      handlePostRequest(fetchData)
+        .then((response) => {
+          setIsLoading(false);
+          if (response.data.response_code !== 200) {
+            setAlert('Terjadi kesalahan tidak terduga. Gagal mendapatkan data.', 'error');
+          } else {
+            setDetailSession(response.data.data);
+            saveDetailSession(response.data.data);
+          }
+        })
+        .catch(() => {
+          setIsLoading(false);
+          setAlert('Terjadi kesalahan tidak terduga. Gagal mendapatkan data.', 'error');
+        });
     };
 
     return () => {

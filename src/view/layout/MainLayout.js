@@ -14,7 +14,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Outlet, useNavigate } from 'react-router';
 import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
 import { AccountCircle, DashboardRounded, PowerSettingsNewRounded, ViewListRounded } from '@mui/icons-material';
-import { readLoginResponse } from '../common/localstorage';
+import { readLoginResponse, removeLoginResponse } from '../common/localstorage';
 
 const drawerWidth = 240;
 
@@ -72,8 +72,13 @@ const MainLayout = () => {
   };
 
   const handleNavClick = (href, menu) => {
-    if (menu !== 3) setActiveMenu(menu);
+    if (menu !== 4) setActiveMenu(menu);
     navigate(href, { replace: true });
+  };
+
+  const handleLogout = () => {
+    removeLoginResponse();
+    handleNavClick('/lkpi/login', 4);
   };
 
   return (
@@ -149,7 +154,18 @@ const MainLayout = () => {
                 </ListItemIcon>
                 <ListItemText primary="Sesi Test" />
               </ListItemButton>
-              <ListItemButton onClick={() => handleNavClick('/lkpi/login', 3)}>
+              {readLoginResponse().role_name === 'admin' && (
+                <ListItemButton
+                  onClick={() => handleNavClick('/lkpi/dashboard/user', 3)}
+                  sx={{ borderRight: activeMenu === 3 ? 'solid 3px blue !important' : '' }}
+                >
+                  <ListItemIcon>
+                    <AccountCircle color={activeMenu === 3 ? 'primary' : ''} />
+                  </ListItemIcon>
+                  <ListItemText primary="User" />
+                </ListItemButton>
+              )}
+              <ListItemButton onClick={() => handleLogout()}>
                 <ListItemIcon>
                   <PowerSettingsNewRounded />
                 </ListItemIcon>

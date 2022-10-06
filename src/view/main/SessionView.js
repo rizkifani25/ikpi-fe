@@ -20,37 +20,52 @@ import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Controller, useForm } from 'react-hook-form';
 import { useSessions } from '../common/hooks/useSessions';
-import { useMutation } from 'react-query';
-import SessionCard from './SessionCard';
-import useSessionsList from '../common/hooks/useSessionsList';
-import { URL_API_SESSION_CREATE } from '../common/constant';
-import ReactQuill from 'react-quill';
-import EditorToolbar, { modules, formats } from './components/EditorToolbar';
+import { useMutation, useQuery } from 'react-query';
+import { URL_API_SESSION_CREATE, URL_API_SESSION_GET_LIST } from '../common/constant';
 import { useNavigate } from 'react-router';
 import { readLoginResponse } from '../common/localstorage';
+import SessionCard from './SessionCard';
 import EditorField from './components/EditorField';
+import useSnackbar from '../common/hooks/useSnackbar';
 
 const { default: axios } = require('axios');
 
 const createNewSessions = async (data) => await axios.post(URL_API_SESSION_CREATE, data);
+const getSessions = async () => await axios.get(URL_API_SESSION_GET_LIST);
 
 const SessionView = () => {
-  const { isFetching } = useSessionsList();
+  const navigate = useNavigate();
 
-  const { isLoading, mutate } = useMutation(createNewSessions);
+  const { setAlert } = useSnackbar();
 
   const sessions = useSessions((state) => state.sessions);
+  const setSessions = useSessions((state) => state.setSessions);
 
-  const [dialog, setDialog] = useState({ isOpen: false });
+  const { isFetching, refetch } = useQuery('sessionList', getSessions, {
+    onSuccess: (response) => {
+      setSessions(response.data.data);
+    },
+    onError: () => {
+      setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+    },
+  });
 
-  const [tmpQuestion, setTmpQuestion] = useState('');
+  const { isLoading, mutate } = useMutation(createNewSessions, {
+    onSuccess: () => {
+      refetch();
+    },
+    onError: () => {
+      setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+    },
+  });
+
   const { handleSubmit, control, reset, watch, setValue } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
     defaultValues: { session_name: '', session_rules: '', start_time: '', end_time: '' },
   });
 
-  const navigate = useNavigate();
+  const [dialog, setDialog] = useState({ isOpen: false });
 
   const handleOpenDialog = () => {
     reset();
@@ -100,10 +115,10 @@ const SessionView = () => {
               </Button>
             </Box>
           )}
-          <Grid container sx={{ mt: 3, width: '100%' }} gap={2}>
+          <Grid container sx={{ mt: 3, width: '100%' }} spacing={1}>
             {sessions.map((session, index) => (
-              <Grid key={index} item xs={12} md={12} lg={3} sx={{ width: '100%' }}>
-                <Card sx={{ maxWidth: 345 }}>
+              <Grid key={index} item xs={12} md={12} lg={3}>
+                <Card sx={{ width: '100%' }}>
                   <CardActionArea onClick={() => navigate(`/lkpi/dashboard/session/${session.id}`, { replace: true })}>
                     <SessionCard sessionData={session} />
                   </CardActionArea>
