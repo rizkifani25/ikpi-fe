@@ -62,12 +62,16 @@ const LoginView = () => {
     };
     handlePostRequest(fetchData)
       .then((response) => {
-        saveLoginResponse(response.data.data);
-        navigate('/lkpi/dashboard', { replace: true });
+        if (response.data.response_code === 200) {
+          saveLoginResponse(response.data.data);
+          navigate('/lkpi/dashboard', { replace: true });
+        } else {
+          setAlert(response.data.response_message || 'Terjadi kesalahan tidak terduga. Gagal login.', 'error');
+        }
       })
       .catch((err) => {
         setIsLoading(false);
-        setAlert(err.response.data.response_message || 'Terjadi kesalahan tidak terduga. Gagal login.', 'error');
+        setAlert('Terjadi kesalahan tidak terduga. Gagal login.', 'error');
       });
   };
 

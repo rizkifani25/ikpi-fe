@@ -1,9 +1,10 @@
-import React from 'react';
-import { ArrowBackRounded, DownloadRounded } from '@mui/icons-material';
-import { Box, Button, Card, CardActionArea, CardHeader, Grid, Toolbar, Typography } from '@mui/material';
+import { ArrowBackRounded, DownloadRounded, ExpandMoreRounded } from '@mui/icons-material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Grid, Toolbar, Typography } from '@mui/material';
 import { useNavigate, useParams } from 'react-router';
 import { MOCK_CONTENT } from '../mocks';
 import FileSaver from 'file-saver';
+import PDFWrapper from './components/PDFWrapper';
+import VideoWrapper from './components/VideoWrapper';
 
 const DashboardDetail = () => {
   const navigate = useNavigate();
@@ -36,20 +37,30 @@ const DashboardDetail = () => {
             {MOCK_CONTENT[section - 1].file.map((f, index) => {
               return (
                 <Grid key={index} item xs={12}>
-                  <Card>
-                    <CardActionArea sx={{ height: '100%' }} onClick={() => handleDownload(f.filename)}>
-                      <CardHeader
-                        title={
-                          <Box display="flex" flexDirection="row" alignItems="center">
-                            <DownloadRounded color="primary" fontSize="large" />
-                            <Typography variant="h5" sx={{ ml: 2 }}>
-                              {f.filename}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </CardActionArea>
-                  </Card>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreRounded />}
+                      aria-controls="panel1a-content"
+                      id="panel1a-header"
+                    >
+                      <Typography variant="h5" sx={{ ml: 2 }}>
+                        {f.filename}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {f.type === 'pdf' && <PDFWrapper source={f.filename} />}
+                      {f.type === 'video' && <VideoWrapper source={f.filename} />}
+                      <Box display="flex" direction="row" justifyContent="flex-end" sx={{ mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          startIcon={<DownloadRounded />}
+                          onClick={() => handleDownload(f.filename)}
+                        >
+                          DOWNLOAD
+                        </Button>
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
                 </Grid>
               );
             })}
