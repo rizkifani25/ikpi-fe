@@ -36,7 +36,7 @@ import {
 } from '../common/constant';
 import { useSessions } from '../common/hooks/useSessions';
 import useSnackbar from '../common/hooks/useSnackbar';
-import { readLoginResponse } from '../common/localstorage';
+import { readLoginResponse, saveDetailSession } from '../common/localstorage';
 import { convertDate, getAlphabet } from '../common/utils';
 import EditorField from './components/EditorField';
 import QuestionCard from './QuestionCard';
@@ -68,6 +68,7 @@ const SessionDetail = () => {
   const { isFetching, refetch } = useQuery('sessionDetail', () => getDetailSession(fetchData), {
     onSuccess: (response) => {
       setDetailSession(response.data.data);
+      saveDetailSession(response.data.data);
     },
     onError: () => {
       setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
@@ -78,6 +79,7 @@ const SessionDetail = () => {
     if (request.mode === 'create') return createQuestion(request.data);
     if (request.mode === 'edit') return updateQuestion(request.data);
   };
+
   const { mutate } = useMutation(actionQuestion, {
     onSuccess: () => {
       handleCloseDialog();
@@ -151,7 +153,7 @@ const SessionDetail = () => {
   const handleDeleteAnswer = (index) => () => remove(index);
 
   const handleStartTest = () => {
-    navigate('/lkpi/dashboard/ontest', { replace: true });
+    navigate(`/lkpi/dashboard/session/${id}/ontest`, { replace: true });
   };
 
   return (
@@ -196,7 +198,7 @@ const SessionDetail = () => {
                     </Grid>
                     <>
                       <Grid container sx={{ mt: 3, width: '100%' }} gap={2}>
-                        {detailSession.question &&
+                        {detailSession.question.length > 0 &&
                           detailSession.question.map((q, index) => (
                             <Grid key={q.id} item xs={12} md={12} lg={2} sx={{ width: '100%' }}>
                               <QuestionCard number={index + 1} question={q} openDetail={handleOpenDetail} />

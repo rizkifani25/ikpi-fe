@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { AddRounded } from '@mui/icons-material';
+import { AddRounded, EditRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardActionArea,
+  CardActions,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   Grid,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Toolbar,
   Typography,
@@ -21,7 +27,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Controller, useForm } from 'react-hook-form';
 import { useSessions } from '../common/hooks/useSessions';
 import { useMutation, useQuery } from 'react-query';
-import { URL_API_SESSION_CREATE, URL_API_SESSION_GET_LIST } from '../common/constant';
+import { URL_API_SESSION_CREATE, URL_API_SESSION_GET_LIST, URL_API_SESSION_UPDATE } from '../common/constant';
 import { useNavigate } from 'react-router';
 import { readLoginResponse } from '../common/localstorage';
 import SessionCard from './SessionCard';
@@ -32,6 +38,7 @@ const { default: axios } = require('axios');
 
 const createNewSessions = async (data) => await axios.post(URL_API_SESSION_CREATE, data);
 const getSessions = async () => await axios.get(URL_API_SESSION_GET_LIST);
+const handlePut = async (data) => await axios.put(data.url, data.data);
 
 const SessionView = () => {
   const navigate = useNavigate();
@@ -40,6 +47,8 @@ const SessionView = () => {
 
   const sessions = useSessions((state) => state.sessions);
   const setSessions = useSessions((state) => state.setSessions);
+
+  const [mode, setMode] = useState('');
 
   const { isFetching, refetch } = useQuery('sessionList', getSessions, {
     onSuccess: (response) => {
@@ -53,6 +62,19 @@ const SessionView = () => {
   const { isLoading, mutate } = useMutation(createNewSessions, {
     onSuccess: () => {
       refetch();
+      handleCloseDialog();
+      setAlert('Berhasil membuat sesi baru.', 'success');
+    },
+    onError: () => {
+      setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+    },
+  });
+
+  const { mutate: updateSession } = useMutation(handlePut, {
+    onSuccess: () => {
+      refetch();
+      handleCloseDialog();
+      setAlert('Berhasil update sesi.', 'success');
     },
     onError: () => {
       setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
@@ -62,13 +84,14 @@ const SessionView = () => {
   const { handleSubmit, control, reset, watch, setValue } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
-    defaultValues: { session_name: '', session_rules: '', start_time: '', end_time: '' },
+    defaultValues: { id: '', session_name: '', session_rules: '', start_time: '', end_time: '', status: '' },
   });
 
   const [dialog, setDialog] = useState({ isOpen: false });
 
   const handleOpenDialog = () => {
     reset();
+    setMode('create');
     setDialog((prevValue) => ({ ...prevValue, isOpen: true }));
   };
 
@@ -76,14 +99,39 @@ const SessionView = () => {
     setDialog((prevValue) => ({ ...prevValue, isOpen: false }));
   };
 
+  const handleEditSession = (session) => {
+    setMode('edit');
+    setValue('id', session.id);
+    setValue('session_name', session.session_name);
+    setValue('session_rules', session.session_rules);
+    setValue('start_time', session.start_time);
+    setValue('end_time', session.end_time);
+    setValue('status', session.status);
+    setDialog((prevValue) => ({ ...prevValue, isOpen: true }));
+  };
+
   const onSubmit = (data) => {
-    mutate({
-      session_name: data.session_name,
-      start_time: new Date(data.start_time).getTime(),
-      end_time: new Date(data.end_time).getTime(),
-      session_rules: data.session_rules,
-    });
-    handleCloseDialog();
+    if (mode === 'edit') {
+      let updateReq = {
+        url: URL_API_SESSION_UPDATE,
+        data: {
+          id: data.id,
+          session_name: data.session_name,
+          start_time: new Date(data.start_time).getTime(),
+          end_time: new Date(data.end_time).getTime(),
+          session_rules: data.session_rules,
+          status: data.status,
+        },
+      };
+      updateSession(updateReq);
+    } else {
+      mutate({
+        session_name: data.session_name,
+        start_time: new Date(data.start_time).getTime(),
+        end_time: new Date(data.end_time).getTime(),
+        session_rules: data.session_rules,
+      });
+    }
   };
 
   const editorValue = (field) => watch(field);
@@ -117,11 +165,18 @@ const SessionView = () => {
           )}
           <Grid container sx={{ mt: 3, width: '100%' }} spacing={1}>
             {sessions.map((session, index) => (
-              <Grid key={index} item xs={12} md={12} lg={3}>
+              <Grid key={index} item xs={12} md={12} lg={4}>
                 <Card sx={{ width: '100%' }}>
                   <CardActionArea onClick={() => navigate(`/lkpi/dashboard/session/${session.id}`, { replace: true })}>
                     <SessionCard sessionData={session} />
                   </CardActionArea>
+                  {readLoginResponse().role_name !== 'user' && (
+                    <CardActions>
+                      <IconButton aria-label="edit" onClick={() => handleEditSession(session)}>
+                        <EditRounded />
+                      </IconButton>
+                    </CardActions>
+                  )}
                 </Card>
               </Grid>
             ))}
@@ -139,6 +194,21 @@ const SessionView = () => {
                   name="session_name"
                   control={control}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel id="select-status">Status</InputLabel>
+                  <Controller
+                    render={({ field }) => (
+                      <Select labelId="select-status" label="Status" {...field}>
+                        <MenuItem value="OPEN">Open</MenuItem>
+                        <MenuItem value="CLOSED">Closed</MenuItem>
+                      </Select>
+                    )}
+                    name="status"
+                    control={control}
+                  />
+                </FormControl>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="body1" sx={{ mb: 2 }}>
@@ -188,7 +258,7 @@ const SessionView = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog} color="primary" variant="outlined" size="large">
-              Cancel
+              Tutup
             </Button>
             <Button type="submit" color="primary" variant="contained" disabled={isLoading} size="large">
               {isLoading && (
@@ -202,7 +272,7 @@ const SessionView = () => {
                   }}
                 />
               )}
-              Tambah
+              {mode === 'edit' ? 'Simpan' : 'Tambah'}
             </Button>
           </DialogActions>
         </form>

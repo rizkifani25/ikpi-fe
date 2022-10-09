@@ -1,25 +1,24 @@
 import { Box, Card, CardContent, CircularProgress, FormControlLabel, Grid, Radio, RadioGroup } from '@mui/material';
-import React from 'react';
 import ReactQuill from 'react-quill';
 
-const QuestionDetail = ({ isLoading, data, userAnswer, handleChange }) => {
+const QuestionDetail = ({ isFetching, data, answer, handleChangeAnswer }) => {
   return (
     <>
-      {isLoading && (
+      {isFetching && (
         <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
           <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
             <CircularProgress color="primary" />
           </Grid>
         </Box>
       )}
-      {!isLoading && data && (
+      {!isFetching && (
         <>
           <ReactQuill theme="bubble" value={data.question} readOnly={true} />
           <RadioGroup
             aria-labelledby="demo-radio-buttons-group-label"
             name="radio-buttons-group"
-            value={userAnswer}
-            onChange={handleChange}
+            value={answer}
+            onChange={handleChangeAnswer}
           >
             <Grid container sx={{ width: '100%' }} spacing={1}>
               {data.answers.map((answer, index) => (

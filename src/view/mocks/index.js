@@ -16,7 +16,7 @@ export const MOCK_CONTENT = [
     icon: 'open-book.png',
     file: [
       {
-        filename: 'Budaya IKPI.pptx',
+        filename: 'Budaya IKPI.pdf',
         type: 'pdf',
       },
     ],
@@ -27,7 +27,7 @@ export const MOCK_CONTENT = [
     icon: 'folder-icon.png',
     file: [
       {
-        filename: 'Orientasi 5S.pptx',
+        filename: 'Orientasi 5S.pdf',
         type: 'pdf',
       },
       {
@@ -48,7 +48,7 @@ export const MOCK_CONTENT = [
     icon: 'team.png',
     file: [
       {
-        filename: 'Orientation New Employee IKPI1.pptx',
+        filename: 'Orientation New Employee IKPI1.pdf',
         type: 'pdf',
       },
     ],

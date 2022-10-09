@@ -11,6 +11,7 @@ const SessionView = lazy(() => import('./view/main/SessionView'));
 const SessionDetailView = lazy(() => import('./view/main/SessionDetail'));
 const QuestionWrapperView = lazy(() => import('./view/main/question/QuestionWrapper'));
 const UserView = lazy(() => import('./view/main/UserView'));
+const ResultView = lazy(() => import('./view/main/ResultView'));
 
 const routes = [
   {
@@ -36,9 +37,11 @@ const routes = [
             children: [
               { path: '', element: <SessionView /> },
               { path: ':id', element: <SessionDetailView /> },
+              { path: ':id/ontest', element: <QuestionWrapperView /> },
+              { path: 'result', element: <ResultView /> },
             ],
           },
-          { path: 'ontest', element: <QuestionWrapperView /> },
+
           { path: '', element: <Navigate to="main" /> },
         ],
       },
