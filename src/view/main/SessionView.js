@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AddRounded, EditRounded } from '@mui/icons-material';
+import { AddRounded, EditRounded, GradingRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -136,6 +136,26 @@ const SessionView = () => {
 
   const editorValue = (field) => watch(field);
 
+  const handleClickSessionCard = (sData) => {
+    if (readLoginResponse().role_name !== 'admin') {
+      if (sData.status === 'OPEN') {
+        navigate(`/lkpi/dashboard/session/${sData.id}`, { replace: true });
+      } else {
+        setAlert('Sesi test belum dibuka. Kontak admin untuk membuka sesi test', 'warning');
+      }
+    } else {
+      navigate(`/lkpi/dashboard/session/${sData.id}`, { replace: true });
+    }
+  };
+
+  const handleClickResult = (sData) => {
+    if (readLoginResponse().role_name !== 'admin') {
+      navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=${readLoginResponse().id}`, { replace: true });
+    } else {
+      navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=`, { replace: true });
+    }
+  };
+
   useEffect(() => {
     return () => {
       const loginRes = readLoginResponse();
@@ -167,16 +187,19 @@ const SessionView = () => {
             {sessions.map((session, index) => (
               <Grid key={index} item xs={12} md={12} lg={4}>
                 <Card sx={{ width: '100%' }}>
-                  <CardActionArea onClick={() => navigate(`/lkpi/dashboard/session/${session.id}`, { replace: true })}>
+                  <CardActionArea onClick={() => handleClickSessionCard(session)}>
                     <SessionCard sessionData={session} />
                   </CardActionArea>
-                  {readLoginResponse().role_name !== 'user' && (
-                    <CardActions>
+                  <CardActions>
+                    {readLoginResponse().role_name !== 'user' && (
                       <IconButton aria-label="edit" onClick={() => handleEditSession(session)}>
                         <EditRounded />
                       </IconButton>
-                    </CardActions>
-                  )}
+                    )}
+                    <IconButton aria-label="result" onClick={() => handleClickResult(session)}>
+                      <GradingRounded />
+                    </IconButton>
+                  </CardActions>
                 </Card>
               </Grid>
             ))}

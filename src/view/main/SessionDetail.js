@@ -153,7 +153,11 @@ const SessionDetail = () => {
   const handleDeleteAnswer = (index) => () => remove(index);
 
   const handleStartTest = () => {
-    navigate(`/lkpi/dashboard/session/${id}/ontest`, { replace: true });
+    if (detailSession.questions_id.length === 0) {
+      setAlert('Belum ada pertanyaan pada sesi ini.', 'warning');
+    } else {
+      navigate(`/lkpi/dashboard/session/${id}/ontest`, { replace: true });
+    }
   };
 
   return (

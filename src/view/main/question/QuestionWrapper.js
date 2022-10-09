@@ -94,6 +94,9 @@ const QuestionWrapper = () => {
           finish_time: new Date().getTime(),
         };
         storeResult(data);
+        navigate(`/lkpi/dashboard/session?sid=${readDetailSession().id}&uid=${readLoginResponse().id}`, {
+          replace: true,
+        });
       } else {
         setQIdx((prev) => {
           const result = prev + 1;

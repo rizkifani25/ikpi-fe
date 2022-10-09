@@ -71,7 +71,11 @@ const LoginView = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setAlert('Terjadi kesalahan tidak terduga. Gagal login.', 'error');
+        if (err.response.status === 400) {
+          setAlert(`${err.response.data.response_message}`, 'error');
+        } else {
+          setAlert('Terjadi kesalahan tidak terduga. Gagal login.', 'error');
+        }
       });
   };
 
