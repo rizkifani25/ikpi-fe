@@ -6,26 +6,19 @@ import {
   CardHeader,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   Grid,
   Toolbar,
   Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
-import { URL_API_ANSWER_STORE, URL_API_QUESTION_GET_USER } from '../../common/constant';
+import { URL_API_ANSWER_STORE, URL_API_QUESTION_GET_USER, URL_API_STORE_RESULT } from '../../common/constant';
 import { readDetailSession, readLoginResponse } from '../../common/localstorage';
 import { CountdownCircleTimer } from 'react-countdown-circle-timer';
 import { useNavigate } from 'react-router';
 import {} from 'react-router-dom';
 import QuestionDetail from './QuestionDetail';
 import useSnackbar from '../../common/hooks/useSnackbar';
-// import { useCallbackPrompt } from '../../common/hooks/useCallbackPrompt';
-// import useUnsavedChangesWarning from '../../common/hooks/useUnsavedChangesWarning';
 
 const { default: axios } = require('axios');
 
@@ -39,25 +32,6 @@ const QuestionWrapper = () => {
   const [qIdx, setQIdx] = useState(0);
   const [qDetail, setQDetail] = useState({});
   const [answer, setAnswer] = useState('');
-
-  // const [open, setOpen] = useState(false);
-  // const [Prompt, setDirty, setPristine] = useUnsavedChangesWarning();
-  // const [showPrompt, confirmNavigation, cancelNavigation] = useCallbackPrompt(open);
-
-  // let [isBlocking, setIsBlocking] = useState(false);
-
-  // usePrompt(
-  //   "Hello from usePrompt -- Are you sure you want to leave?",
-  //   isBlocking
-  // );
-
-  // const handleClickOpen = () => {
-  //   setOpen(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpen(false);
-  // };
 
   const fetchData = {
     url: URL_API_QUESTION_GET_USER,
@@ -77,7 +51,9 @@ const QuestionWrapper = () => {
 
   const { mutate: storeResult } = useMutation(handlePost, {
     onSuccess: () => {
-      navigate();
+      navigate(`/lkpi/dashboard/session/result?sid=${readDetailSession().id}&uid=${readLoginResponse().id}`, {
+        replace: true,
+      });
     },
     onError: () => {
       setAlert('Gagal menyimpan hasil.', 'error');
@@ -88,15 +64,15 @@ const QuestionWrapper = () => {
     onSuccess: () => {
       setAlert('Sukses menyimpan jawaban.', 'success');
       if (listQuestion.length <= qIdx + 1) {
-        let data = {
-          id_session: readDetailSession().id,
-          id_user: readLoginResponse().id,
-          finish_time: new Date().getTime(),
+        let fetchData = {
+          url: URL_API_STORE_RESULT,
+          data: {
+            id_session: readDetailSession().id,
+            id_user: readLoginResponse().id,
+            finish_time: new Date().getTime(),
+          },
         };
-        storeResult(data);
-        navigate(`/lkpi/dashboard/session?sid=${readDetailSession().id}&uid=${readLoginResponse().id}`, {
-          replace: true,
-        });
+        storeResult(fetchData);
       } else {
         setQIdx((prev) => {
           const result = prev + 1;
@@ -196,28 +172,6 @@ const QuestionWrapper = () => {
           </Grid>
         </Grid>
       </Box>
-
-      {/* {Prompt}
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Let Google help apps determine location. This means sending anonymous location data to Google, even when no
-            apps are running.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Disagree</Button>
-          <Button onClick={handleClose} autoFocus>
-            Agree
-          </Button>
-        </DialogActions>
-      </Dialog> */}
     </>
   );
 };
