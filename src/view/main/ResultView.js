@@ -107,7 +107,7 @@ const ResultView = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant="h5" textAlign="center">
-                      {`Durasi Test : ${getDifferentMinutes(detailSession.start_time, detailSession.end_time)} menit`}
+                      {`Batas Waktu : ${getDifferentMinutes(detailSession.start_time, detailSession.end_time)} menit`}
                     </Typography>
                   </Grid>
                   <Grid item xs="auto">

@@ -10,7 +10,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import { URL_API_ANSWER_STORE, URL_API_QUESTION_GET_USER, URL_API_STORE_RESULT } from '../../common/constant';
 import { readDetailSession, readLoginResponse } from '../../common/localstorage';
@@ -31,7 +31,7 @@ const QuestionWrapper = () => {
   const listQuestion = readDetailSession().questions_id;
   const [qIdx, setQIdx] = useState(0);
   const [qDetail, setQDetail] = useState({});
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState('0');
 
   const fetchData = {
     url: URL_API_QUESTION_GET_USER,
@@ -44,8 +44,11 @@ const QuestionWrapper = () => {
     onSuccess: (response) => {
       setQDetail(response.data.data);
     },
-    onError: () => {
+    onError: (err) => {
+      console.log(err);
+      setQDetail({});
       setAlert('Gagal mendapatkan data. Tolong, coba lagi.', 'error');
+      navigate(`/lkpi/dashboard/session/${readDetailSession().id}`, { replace: true });
     },
   });
 
@@ -104,6 +107,27 @@ const QuestionWrapper = () => {
   const handleChangeAnswer = (event) => {
     setAnswer(event.target.value);
   };
+
+  useEffect(() => {
+    const unloadCallback = (event) => {
+      localStorage.setItem('isRefresh', 'true');
+      event.preventDefault();
+      event.returnValue = 'Anda tidak bisa mengulang sesi ini lagi. Anda yakin?';
+      return '';
+    };
+
+    window.addEventListener('beforeunload', unloadCallback);
+
+    const checkIsRefresh = () => {
+      if (localStorage.getItem('isRefresh') === 'true') {
+        navigate(`/lkpi/dashboard/session/${readDetailSession().id}`, { replace: true });
+      }
+    };
+
+    checkIsRefresh();
+
+    return () => window.removeEventListener('beforeunload', unloadCallback);
+  }, []);
 
   return (
     <>

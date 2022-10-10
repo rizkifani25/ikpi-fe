@@ -1,4 +1,4 @@
-import { AddRounded, ArrowBackRounded, DeleteRounded } from '@mui/icons-material';
+import { AccessTimeRounded, AddRounded, ArrowBackRounded, CheckBoxRounded, DeleteRounded } from '@mui/icons-material';
 import {
   Button,
   Card,
@@ -153,9 +153,10 @@ const SessionDetail = () => {
   const handleDeleteAnswer = (index) => () => remove(index);
 
   const handleStartTest = () => {
-    if (detailSession.questions_id.length === 0) {
-      setAlert('Belum ada pertanyaan pada sesi ini.', 'warning');
+    if (detailSession.questions_id.length === 0 || !detailSession.is_user_eligible) {
+      setAlert('User tidak dapat memulai test. Kontak administrator untuk keterangan lebih lanjut.', 'warning');
     } else {
+      localStorage.setItem('isRefresh', 'false');
       navigate(`/lkpi/dashboard/session/${id}/ontest`, { replace: true });
     }
   };
@@ -184,7 +185,21 @@ const SessionDetail = () => {
                 subheader={`${convertDate(new Date(detailSession.start_time), 'dddd, DD MMMM YYYY')}`}
               />
               <CardContent>
-                <Typography variant="h5">Peraturan</Typography>
+                <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
+                  <AccessTimeRounded color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="body1" alignItems="center">
+                    {`Waktu Pengerjaan : ${detailSession.time_duration} detik`}
+                  </Typography>
+                </Box>
+                <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
+                  <CheckBoxRounded color="primary" sx={{ mr: 1 }} />
+                  <Typography variant="body1" alignItems="center">
+                    {`Jumlah Soal : ${detailSession.total_question} soal`}
+                  </Typography>
+                </Box>
+                <Typography variant="h5" sx={{ mt: 2 }}>
+                  Peraturan
+                </Typography>
                 <ReactQuill theme="bubble" value={detailSession.session_rules} readOnly={true} />
                 {readLoginResponse().role_name !== 'user' && (
                   <>
