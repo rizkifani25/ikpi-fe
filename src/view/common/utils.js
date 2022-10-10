@@ -7,6 +7,12 @@ export const convertDate = (date, format) => {
   return dayjs(date).format(format);
 };
 
+export const getDifferentMinutes = (dateStart, dateFinish) => {
+  var diff = (dateStart - dateFinish) / 1000;
+  diff /= 60;
+  return Math.abs(Math.round(diff));
+};
+
 const alphabet = [
   'A',
   'B',
