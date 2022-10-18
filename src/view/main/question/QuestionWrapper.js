@@ -44,8 +44,7 @@ const QuestionWrapper = () => {
     onSuccess: (response) => {
       setQDetail(response.data.data);
     },
-    onError: (err) => {
-      console.log(err);
+    onError: () => {
       setQDetail({});
       setAlert('Gagal mendapatkan data. Tolong, coba lagi.', 'error');
       navigate(`/lkpi/dashboard/session/${readDetailSession().id}`, { replace: true });

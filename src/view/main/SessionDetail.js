@@ -185,18 +185,22 @@ const SessionDetail = () => {
                 subheader={`${convertDate(new Date(detailSession.start_time), 'dddd, DD MMMM YYYY')}`}
               />
               <CardContent>
-                <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
-                  <AccessTimeRounded color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="body1" alignItems="center">
-                    {`Waktu Pengerjaan : ${detailSession.time_duration} detik`}
-                  </Typography>
-                </Box>
-                <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
-                  <CheckBoxRounded color="primary" sx={{ mr: 1 }} />
-                  <Typography variant="body1" alignItems="center">
-                    {`Jumlah Soal : ${detailSession.total_question} soal`}
-                  </Typography>
-                </Box>
+                {readLoginResponse().role_name === 'user' && (
+                  <>
+                    <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
+                      <AccessTimeRounded color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body1" alignItems="center">
+                        {`Waktu Pengerjaan : ${detailSession.time_duration} detik`}
+                      </Typography>
+                    </Box>
+                    <Box display="flex" direction="row" alignContent="center" sx={{ mt: 1 }}>
+                      <CheckBoxRounded color="primary" sx={{ mr: 1 }} />
+                      <Typography variant="body1" alignItems="center">
+                        {`Jumlah Soal : ${detailSession.total_question} soal`}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
                 <Typography variant="h5" sx={{ mt: 2 }}>
                   Peraturan
                 </Typography>

@@ -6,6 +6,8 @@ import {
   Card,
   CardActionArea,
   CardActions,
+  Checkbox,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -15,7 +17,9 @@ import {
   Grid,
   IconButton,
   InputLabel,
+  ListItemText,
   MenuItem,
+  OutlinedInput,
   Select,
   TextField,
   Toolbar,
@@ -27,7 +31,12 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Controller, useForm } from 'react-hook-form';
 import { useSessions } from '../common/hooks/useSessions';
 import { useMutation, useQuery } from 'react-query';
-import { URL_API_SESSION_CREATE, URL_API_SESSION_GET_LIST, URL_API_SESSION_UPDATE } from '../common/constant';
+import {
+  URL_API_GET_USERS,
+  URL_API_SESSION_CREATE,
+  URL_API_SESSION_GET_LIST,
+  URL_API_SESSION_UPDATE,
+} from '../common/constant';
 import { useNavigate } from 'react-router';
 import { readLoginResponse } from '../common/localstorage';
 import SessionCard from './SessionCard';
@@ -37,8 +46,9 @@ import useSnackbar from '../common/hooks/useSnackbar';
 const { default: axios } = require('axios');
 
 const createNewSessions = async (data) => await axios.post(URL_API_SESSION_CREATE, data);
-const getSessions = async () => await axios.get(URL_API_SESSION_GET_LIST);
+const getSessions = async (data) => await axios.post(URL_API_SESSION_GET_LIST, data);
 const handlePut = async (data) => await axios.put(data.url, data.data);
+const handleGet = async (data) => await axios.get(data.url);
 
 const SessionView = () => {
   const navigate = useNavigate();
@@ -49,10 +59,24 @@ const SessionView = () => {
   const setSessions = useSessions((state) => state.setSessions);
 
   const [mode, setMode] = useState('');
+  const [users, setUsers] = useState([]);
 
-  const { isFetching, refetch } = useQuery('sessionList', getSessions, {
+  const { isFetching, refetch } = useQuery(
+    'sessionList',
+    () => getSessions({ user_id: readLoginResponse().role_name !== 'admin' ? readLoginResponse().id : null }),
+    {
+      onSuccess: (response) => {
+        setSessions(response.data.data);
+      },
+      onError: () => {
+        setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
+      },
+    }
+  );
+
+  const { isFetching: loadingUser } = useQuery('listUser', () => handleGet({ url: URL_API_GET_USERS }), {
     onSuccess: (response) => {
-      setSessions(response.data.data);
+      setUsers(response.data.data);
     },
     onError: () => {
       setAlert('Terjadi kesalahan tidak terduga. Coba lagi nanti.', 'error');
@@ -84,7 +108,15 @@ const SessionView = () => {
   const { handleSubmit, control, reset, watch, setValue } = useForm({
     mode: 'all',
     reValidateMode: 'onChange',
-    defaultValues: { id: '', session_name: '', session_rules: '', start_time: '', end_time: '', status: '' },
+    defaultValues: {
+      id: '',
+      session_name: '',
+      session_rules: '',
+      start_time: '',
+      end_time: '',
+      status: '',
+      assigned_user: [],
+    },
   });
 
   const [dialog, setDialog] = useState({ isOpen: false });
@@ -107,6 +139,7 @@ const SessionView = () => {
     setValue('start_time', session.start_time);
     setValue('end_time', session.end_time);
     setValue('status', session.status);
+    setValue('assigned_user', session.assigned_user.split(','));
     setDialog((prevValue) => ({ ...prevValue, isOpen: true }));
   };
 
@@ -121,6 +154,7 @@ const SessionView = () => {
           end_time: new Date(data.end_time).getTime(),
           session_rules: data.session_rules,
           status: data.status,
+          assigned_user: data.assigned_user.join(','),
         },
       };
       updateSession(updateReq);
@@ -130,6 +164,7 @@ const SessionView = () => {
         start_time: new Date(data.start_time).getTime(),
         end_time: new Date(data.end_time).getTime(),
         session_rules: data.session_rules,
+        assigned_user: data.assigned_user.join(','),
       });
     }
   };
@@ -167,14 +202,14 @@ const SessionView = () => {
   return (
     <>
       <Toolbar />
-      {isFetching && (
+      {isFetching && loadingUser && (
         <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
           <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
             <CircularProgress color="primary" />
           </Grid>
         </Box>
       )}
-      {!isFetching && (
+      {!isFetching && !loadingUser && (
         <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
           {readLoginResponse().role_name !== 'user' && (
             <Box display="flex" flexDirection="row">
@@ -276,6 +311,46 @@ const SessionView = () => {
                     control={control}
                   />
                 </LocalizationProvider>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel id="category-selection">User</InputLabel>
+                  <Controller
+                    render={({ field }) => {
+                      return (
+                        <Select
+                          multiple
+                          labelId="category-selection"
+                          id="demo-multiple-chip"
+                          variant="outlined"
+                          input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
+                          renderValue={(selected) =>
+                            selected.map((sel) => (
+                              <Chip
+                                key={sel}
+                                label={users.filter((u) => u.id.toString() === sel)[0].user_full_name}
+                                sx={{ mr: 1 }}
+                              />
+                            ))
+                          }
+                          {...field}
+                        >
+                          {users.map(
+                            (u) =>
+                              u.role_name !== 'admin' && (
+                                <MenuItem key={u.id} value={u.id.toString()}>
+                                  <Checkbox checked={field.value.includes(u.id.toString())} />
+                                  <ListItemText primary={u.user_full_name} />
+                                </MenuItem>
+                              )
+                          )}
+                        </Select>
+                      );
+                    }}
+                    name="assigned_user"
+                    control={control}
+                  />
+                </FormControl>
               </Grid>
             </Grid>
           </DialogContent>
