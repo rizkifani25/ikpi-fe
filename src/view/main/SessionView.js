@@ -139,7 +139,7 @@ const SessionView = () => {
     setValue('start_time', session.start_time);
     setValue('end_time', session.end_time);
     setValue('status', session.status);
-    setValue('assigned_user', session.assigned_user.split(','));
+    setValue('assigned_user', session.assigned_user !== '' ? session.assigned_user.split(',') : []);
     setDialog((prevValue) => ({ ...prevValue, isOpen: true }));
   };
 
