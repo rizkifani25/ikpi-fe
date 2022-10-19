@@ -59,7 +59,7 @@ const UserView = () => {
     },
   });
 
-  const { isFetching, refetch } = useQuery('listUser', () => handleGet({ url: URL_API_GET_USERS }), {
+  const { isFetching: loadingInit, refetch } = useQuery('listUser', () => handleGet({ url: URL_API_GET_USERS }), {
     onSuccess: (response) => {
       setUsers(response.data.data);
     },
@@ -68,7 +68,7 @@ const UserView = () => {
     },
   });
 
-  const { mutate: createNewUser } = useMutation(handlePost, {
+  const { isFetching: loadingCreate, mutate: createNewUser } = useMutation(handlePost, {
     onSuccess: () => {
       refetch();
       handleCloseDialog();
@@ -80,7 +80,7 @@ const UserView = () => {
     },
   });
 
-  const { mutate: updateUser } = useMutation(handlePost, {
+  const { isFetching: loadingUpdate, mutate: updateUser } = useMutation(handlePost, {
     onSuccess: () => {
       refetch();
       handleCloseDialog();
@@ -151,6 +151,14 @@ const UserView = () => {
   return (
     <>
       <Toolbar />
+      {loadingInit && (
+        <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
+          <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
+            <CircularProgress color="primary" />
+          </Grid>
+        </Box>
+      )}
+
       <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
         {readLoginResponse().role_name === 'admin' && (
           <Box display="flex" flexDirection="row">
@@ -160,59 +168,61 @@ const UserView = () => {
           </Box>
         )}
         <Grid item xs={12} sx={{ mt: 2 }}>
-          <TableContainer component={Paper}>
-            <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>No.</TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Nama Lengkap
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Email
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    No. HP
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Pendidikan Terakhir
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Role
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Status
-                  </TableCell>
-                  <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
-                    Action
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {users.map((row, index) => (
-                  <TableRow hover key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                    <TableCell component="th" scope="row">
-                      {index + 1}
+          {!loadingInit && (
+            <TableContainer component={Paper}>
+              <Table stickyHeader sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>No.</TableCell>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Nama Lengkap
                     </TableCell>
-                    <TableCell align="center">{row.user_full_name || '-'}</TableCell>
-                    <TableCell align="center">{row.email || '-'}</TableCell>
-                    <TableCell align="right">{row.phone_number || '-'}</TableCell>
-                    <TableCell align="center">{row.latest_education || '-'}</TableCell>
-                    <TableCell align="center">{row.role_name || '-'}</TableCell>
-                    <TableCell align="center">
-                      {row.status === 'ACTIVE' && <Chip label={row.status} color="success" />}
-                      {row.status !== 'ACTIVE' && <Chip label={row.status} color="error" />}
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Email
                     </TableCell>
-                    <TableCell align="center">
-                      <IconButton aria-label="edit" onClick={() => handleEdit(row)}>
-                        <EditRounded />
-                      </IconButton>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      No. HP
+                    </TableCell>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Pendidikan Terakhir
+                    </TableCell>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Role
+                    </TableCell>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Status
+                    </TableCell>
+                    <TableCell align="center" sx={{ borderBottom: '2px solid black', fontWeight: 'bold' }}>
+                      Action
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {users.map((row, index) => (
+                    <TableRow hover key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      <TableCell component="th" scope="row">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell align="center">{row.user_full_name || '-'}</TableCell>
+                      <TableCell align="center">{row.email || '-'}</TableCell>
+                      <TableCell align="right">{row.phone_number || '-'}</TableCell>
+                      <TableCell align="center">{row.latest_education || '-'}</TableCell>
+                      <TableCell align="center">{row.role_name || '-'}</TableCell>
+                      <TableCell align="center">
+                        {row.status === 'ACTIVE' && <Chip label={row.status} color="success" />}
+                        {row.status !== 'ACTIVE' && <Chip label={row.status} color="error" />}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton aria-label="edit" onClick={() => handleEdit(row)}>
+                          <EditRounded />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Grid>
       </Grid>
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" scroll="paper">
@@ -307,8 +317,14 @@ const UserView = () => {
           <Button onClick={handleCloseDialog} color="primary" variant="outlined" size="large">
             Tutup
           </Button>
-          <Button onClick={onSubmit} color="primary" variant="contained" disabled={isFetching} size="large">
-            {isFetching && (
+          <Button
+            onClick={onSubmit}
+            color="primary"
+            variant="contained"
+            disabled={loadingCreate && loadingUpdate}
+            size="large"
+          >
+            {loadingCreate && loadingUpdate && (
               <CircularProgress
                 size="small"
                 sx={{

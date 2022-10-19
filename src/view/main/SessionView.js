@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AddRounded, EditRounded, GradingRounded } from '@mui/icons-material';
+import { AddRounded, EditRounded } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -183,13 +183,13 @@ const SessionView = () => {
     }
   };
 
-  const handleClickResult = (sData) => {
-    if (readLoginResponse().role_name !== 'admin') {
-      navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=${readLoginResponse().id}`, { replace: true });
-    } else {
-      navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=`, { replace: true });
-    }
-  };
+  // const handleClickResult = (sData) => {
+  //   if (readLoginResponse().role_name !== 'admin') {
+  //     navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=${readLoginResponse().id}`, { replace: true });
+  //   } else {
+  //     navigate(`/lkpi/dashboard/session/result?sid=${sData.id}&uid=`, { replace: true });
+  //   }
+  // };
 
   useEffect(() => {
     return () => {
@@ -231,9 +231,9 @@ const SessionView = () => {
                         <EditRounded />
                       </IconButton>
                     )}
-                    <IconButton aria-label="result" onClick={() => handleClickResult(session)}>
+                    {/* <IconButton aria-label="result" onClick={() => handleClickResult(session)}>
                       <GradingRounded />
-                    </IconButton>
+                    </IconButton> */}
                   </CardActions>
                 </Card>
               </Grid>

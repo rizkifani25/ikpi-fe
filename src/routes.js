@@ -12,6 +12,7 @@ const SessionDetailView = lazy(() => import('./view/main/SessionDetail'));
 const QuestionWrapperView = lazy(() => import('./view/main/question/QuestionWrapper'));
 const UserView = lazy(() => import('./view/main/UserView'));
 const ResultView = lazy(() => import('./view/main/ResultView'));
+const ResultTest = lazy(() => import('./view/main/ResultTest'));
 
 const routes = [
   {
@@ -30,7 +31,6 @@ const routes = [
               { path: ':section', element: <DashboardDetailView /> },
             ],
           },
-          { path: 'user', element: <UserView /> },
           {
             path: 'session',
             element: <DefaultLayout />,
@@ -41,7 +41,8 @@ const routes = [
               { path: 'result', element: <ResultView /> },
             ],
           },
-
+          { path: 'hasil', element: <ResultTest /> },
+          { path: 'user', element: <UserView /> },
           { path: '', element: <Navigate to="main" /> },
         ],
       },

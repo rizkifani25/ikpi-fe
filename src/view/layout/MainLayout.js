@@ -13,7 +13,13 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Outlet, useNavigate } from 'react-router';
 import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { AccountCircle, DashboardRounded, PowerSettingsNewRounded, ViewListRounded } from '@mui/icons-material';
+import {
+  AccountCircle,
+  DashboardRounded,
+  GradingRounded,
+  PowerSettingsNewRounded,
+  ViewListRounded,
+} from '@mui/icons-material';
 import { readLoginResponse, removeLoginResponse } from '../common/localstorage';
 
 const drawerWidth = 240;
@@ -72,7 +78,7 @@ const MainLayout = () => {
   };
 
   const handleNavClick = (href, menu) => {
-    if (menu !== 4) setActiveMenu(menu);
+    if (menu !== 5) setActiveMenu(menu);
     navigate(href, { replace: true });
   };
 
@@ -136,15 +142,17 @@ const MainLayout = () => {
           <Divider />
           <List component="nav">
             <React.Fragment>
-              <ListItemButton
-                onClick={() => handleNavClick('/lkpi/dashboard/main', 1)}
-                sx={{ borderRight: activeMenu === 1 ? 'solid 3px blue !important' : '' }}
-              >
-                <ListItemIcon>
-                  <DashboardRounded color={activeMenu === 1 ? 'primary' : ''} />
-                </ListItemIcon>
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
+              {readLoginResponse().role_name === 'user' && (
+                <ListItemButton
+                  onClick={() => handleNavClick('/lkpi/dashboard/main', 1)}
+                  sx={{ borderRight: activeMenu === 1 ? 'solid 3px blue !important' : '' }}
+                >
+                  <ListItemIcon>
+                    <DashboardRounded color={activeMenu === 1 ? 'primary' : ''} />
+                  </ListItemIcon>
+                  <ListItemText primary="Dashboard" />
+                </ListItemButton>
+              )}
               <ListItemButton
                 onClick={() => handleNavClick('/lkpi/dashboard/session/', 2)}
                 sx={{ borderRight: activeMenu === 2 ? 'solid 3px blue !important' : '' }}
@@ -156,11 +164,22 @@ const MainLayout = () => {
               </ListItemButton>
               {readLoginResponse().role_name === 'admin' && (
                 <ListItemButton
-                  onClick={() => handleNavClick('/lkpi/dashboard/user', 3)}
+                  onClick={() => handleNavClick('/lkpi/dashboard/hasil', 3)}
                   sx={{ borderRight: activeMenu === 3 ? 'solid 3px blue !important' : '' }}
                 >
                   <ListItemIcon>
-                    <AccountCircle color={activeMenu === 3 ? 'primary' : ''} />
+                    <GradingRounded color={activeMenu === 3 ? 'primary' : ''} />
+                  </ListItemIcon>
+                  <ListItemText primary="Hasil Sesi Test" />
+                </ListItemButton>
+              )}
+              {readLoginResponse().role_name === 'admin' && (
+                <ListItemButton
+                  onClick={() => handleNavClick('/lkpi/dashboard/user', 4)}
+                  sx={{ borderRight: activeMenu === 4 ? 'solid 3px blue !important' : '' }}
+                >
+                  <ListItemIcon>
+                    <AccountCircle color={activeMenu === 4 ? 'primary' : ''} />
                   </ListItemIcon>
                   <ListItemText primary="User" />
                 </ListItemButton>
