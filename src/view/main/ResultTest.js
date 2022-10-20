@@ -1,6 +1,6 @@
-import { Card, CardActionArea, CircularProgress, Grid, Toolbar } from '@mui/material';
+import { Card, CardActionArea, CircularProgress, Grid, Toolbar, Typography } from '@mui/material';
 import { Box } from '@mui/system';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router';
 import { URL_API_SESSION_GET_LIST } from '../common/constant';
@@ -17,8 +17,8 @@ const ResultTest = () => {
   const { setAlert } = useSnackbar();
   const [sessions, setSessions] = useState([]);
 
-  const { isFetching } = useQuery(
-    'sessionListAdmin',
+  const { isFetching, refetch } = useQuery(
+    'adminSessions',
     () =>
       getSessions({
         user_id: readLoginResponse().role_name !== 'admin' ? readLoginResponse().id : null,
@@ -42,6 +42,16 @@ const ResultTest = () => {
     }
   };
 
+  useEffect(() => {
+    let subscribed = true;
+    return () => {
+      if (subscribed) {
+        refetch();
+        subscribed = false;
+      }
+    };
+  }, []);
+
   return (
     <>
       <Toolbar />
@@ -54,6 +64,9 @@ const ResultTest = () => {
       )}
       {!isFetching && (
         <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
+          <Grid item xs={12}>
+            <Typography variant="h5">Hasil Sesi Test PT. IK Precision Indonesia</Typography>
+          </Grid>
           <Grid container sx={{ mt: 3, width: '100%' }} spacing={1}>
             {sessions.map((session, index) => (
               <Grid key={index} item xs={12} md={12} lg={4}>

@@ -61,7 +61,7 @@ const SessionView = () => {
   const [mode, setMode] = useState('');
   const [users, setUsers] = useState([]);
 
-  const { isFetching, refetch } = useQuery(
+  const { isFetching: loadingList, refetch } = useQuery(
     'sessionList',
     () => getSessions({ user_id: readLoginResponse().role_name !== 'admin' ? readLoginResponse().id : null }),
     {
@@ -192,24 +192,26 @@ const SessionView = () => {
   // };
 
   useEffect(() => {
+    let subscribed = true;
     return () => {
-      const loginRes = readLoginResponse();
-      if (loginRes === null) navigate('/lkpi/login');
+      if (subscribed) {
+        refetch();
+        subscribed = false;
+      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <>
       <Toolbar />
-      {isFetching && loadingUser && (
+      {loadingList && loadingUser && (
         <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
           <Grid container direction="column" alignItems="center" justifyContent="center" sx={{ minHeight: '100vh' }}>
             <CircularProgress color="primary" />
           </Grid>
         </Box>
       )}
-      {!isFetching && !loadingUser && (
+      {!loadingList && !loadingUser && (
         <Grid container sx={{ mt: 2, mb: 4, p: 4 }}>
           {readLoginResponse().role_name !== 'user' && (
             <Box display="flex" flexDirection="row">
@@ -218,27 +220,42 @@ const SessionView = () => {
               </Button>
             </Box>
           )}
-          <Grid container sx={{ mt: 3, width: '100%' }} spacing={1}>
-            {sessions.map((session, index) => (
-              <Grid key={index} item xs={12} md={12} lg={4}>
-                <Card sx={{ width: '100%' }}>
-                  <CardActionArea onClick={() => handleClickSessionCard(session)}>
-                    <SessionCard sessionData={session} />
-                  </CardActionArea>
-                  <CardActions>
-                    {readLoginResponse().role_name !== 'user' && (
-                      <IconButton aria-label="edit" onClick={() => handleEditSession(session)}>
-                        <EditRounded />
-                      </IconButton>
-                    )}
-                    {/* <IconButton aria-label="result" onClick={() => handleClickResult(session)}>
+          {sessions.length > 0 && (
+            <Grid container sx={{ mt: 3, width: '100%' }} spacing={1}>
+              {sessions.map((session, index) => (
+                <Grid key={index} item xs={12} md={12} lg={4}>
+                  <Card sx={{ width: '100%' }}>
+                    <CardActionArea onClick={() => handleClickSessionCard(session)}>
+                      <SessionCard sessionData={session} />
+                    </CardActionArea>
+                    <CardActions>
+                      {readLoginResponse().role_name !== 'user' && (
+                        <IconButton aria-label="edit" onClick={() => handleEditSession(session)}>
+                          <EditRounded />
+                        </IconButton>
+                      )}
+                      {/* <IconButton aria-label="result" onClick={() => handleClickResult(session)}>
                       <GradingRounded />
                     </IconButton> */}
-                  </CardActions>
-                </Card>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+          {sessions.length === 0 && (
+            <Box sx={{ maxWidth: 500, margin: '0 auto' }}>
+              <Grid
+                container
+                direction="column"
+                alignItems="center"
+                justifyContent="center"
+                sx={{ minHeight: '100vh' }}
+              >
+                <Typography variant="h4">Tidak ada sesi.</Typography>
               </Grid>
-            ))}
-          </Grid>
+            </Box>
+          )}
         </Grid>
       )}
       <Dialog open={dialog.isOpen} onClose={handleCloseDialog}>

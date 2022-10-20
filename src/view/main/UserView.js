@@ -25,7 +25,7 @@ import {
   Toolbar,
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQuery } from 'react-query';
 import { URL_API_CREATE_USERS, URL_API_GET_USERS, URL_API_UPDATE_USER } from '../common/constant';
@@ -147,6 +147,16 @@ const UserView = () => {
       createNewUser(createUpdate);
     }
   });
+
+  useEffect(() => {
+    let subscribed = true;
+    return () => {
+      if (subscribed) {
+        refetch();
+        subscribed = false;
+      }
+    };
+  }, []);
 
   return (
     <>

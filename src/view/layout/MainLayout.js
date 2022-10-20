@@ -142,7 +142,7 @@ const MainLayout = () => {
           <Divider />
           <List component="nav">
             <React.Fragment>
-              {readLoginResponse().role_name === 'user' && (
+              {readLoginResponse().role_name === 'admin' && (
                 <ListItemButton
                   onClick={() => handleNavClick('/lkpi/dashboard/main', 1)}
                   sx={{ borderRight: activeMenu === 1 ? 'solid 3px blue !important' : '' }}

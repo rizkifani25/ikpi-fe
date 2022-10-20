@@ -169,7 +169,7 @@ const ResultView = () => {
                       variant="contained"
                       size="small"
                       startIcon={<ArrowBackRounded />}
-                      onClick={() => navigate('/lkpi/dashboard/session', { replace: true })}
+                      onClick={() => navigate('/lkpi/dashboard/hasil', { replace: true })}
                     >
                       Kembali ke Sesi Test
                     </Button>
