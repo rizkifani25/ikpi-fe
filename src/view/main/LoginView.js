@@ -64,7 +64,11 @@ const LoginView = () => {
       .then((response) => {
         if (response.data.response_code === 200) {
           saveLoginResponse(response.data.data);
-          navigate('/lkpi/dashboard', { replace: true });
+          if (response.data.data.role_name === 'admin') {
+            navigate('/lkpi/dashboard', { replace: true });
+          } else {
+            navigate('/lkpi/dashboard/session');
+          }
         } else {
           setAlert(response.data.response_message || 'Terjadi kesalahan tidak terduga. Gagal login.', 'error');
         }
